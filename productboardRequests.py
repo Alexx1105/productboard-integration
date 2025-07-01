@@ -16,7 +16,7 @@ class ProductboardData:
     description: str
     owner: str
     email: str
-    
+    html: str
 
 @staticmethod
 def productboardReq() -> ProductboardData:
@@ -35,14 +35,16 @@ def productboardReq() -> ProductboardData:
      resp = requests.get(endpointAppended, headers = requestHeaders)
     
      dicts = resp.json().get("data", resp.json())         ## pull out top level JSON object 
+   
      return(ProductboardData(
           id = dicts.get("id"),
           name = dicts.get("name"),
           description = dicts.get("description"),
           owner = dicts.get("owner"),
-          email = dicts.get("email")
+          email = dicts.get("email"),
+          html = dicts.get("html")
      ))
-    
+        
   except TypeError as typeError:
      print("request to productboard failed ❌", typeError)    
   except ImportError as importError:
@@ -51,8 +53,10 @@ def productboardReq() -> ProductboardData:
     print("bad request", requestError)
     
     
+    
 if __name__ == "__main__":
    print(productboardReq())
-   
+
+  
    
       
