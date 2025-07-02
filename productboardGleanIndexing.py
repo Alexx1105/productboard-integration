@@ -35,6 +35,7 @@ class ProductboardDataClient(StreamingConnectorDataClient[ProductboardData]):
         self.apiKey = apiKey
     
     def get_source_data(self, since = None) -> Generator[ProductboardData, None, None]:
+      
         nextPage = None
         while True:
             if nextPage:
@@ -53,15 +54,15 @@ class ProductboardDataClient(StreamingConnectorDataClient[ProductboardData]):
             
             for i in products:
                 yield ProductboardData(i)
-                
+            print(f"PRODUCTS HERE: {i}")
             nextPage = data.get("links", {}).get("next") 
             if not nextPage:
                 break
             
              
 class ProductboardConnector(BaseStreamingDatasourceConnector[ProductboardData]):
-      configuration: CustomDatasourceConfig = CustomDatasourceConfig( name="productboard", display_name="ProductBoard",
-                                                   url_regex=r"https://.*\.productboard\.com/.*",trust_url_regex_for_view_activity=True,)
+      configuration: CustomDatasourceConfig = CustomDatasourceConfig( name = "productboard", display_name = "ProductBoard",
+                                                   url_regex = r"https://.*\.productboard\.com/.*", trust_url_regex_for_view_activity = True)
       def __init__(self, name: str, data_client):
           super().__init__(name, data_client)
           self.batch_size = 80
@@ -79,7 +80,8 @@ class ProductboardConnector(BaseStreamingDatasourceConnector[ProductboardData]):
                          owner = UserReferenceDefinition(email = i["owner"]["email"]),
                          created_at = self.getTimestamp(i["createdAt"]),
                          updated_at = self.getTimestamp(i["updatedAt"]),
-                         permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)  ##TO-DO: change later?
+                         permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)  ##TO-DO: change later?                       
+                         
                          )
                      )
              return docs
@@ -90,9 +92,14 @@ class ProductboardConnector(BaseStreamingDatasourceConnector[ProductboardData]):
       
 
 def main():
+  try:
     data_client = ProductboardDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
     connector = ProductboardConnector(name = "productboard", data_client = data_client)
     connector.index_data(mode = IndexingMode.FULL)   ##TO-DO: toggle to incremental later?
+
+    print("successful indexing of products into glean ✅")
+  except: 
+    print("failed to index ❗️")
     
     
 if __name__ == "__main__":
