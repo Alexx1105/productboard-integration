@@ -59,7 +59,7 @@ class CronScheduler:
         def decorator(func):
             @wraps(func)
                                 
-            def wrapper(*args, **kwargs):
+            def wrapper():
                 cron = CronScheduler()
                 wrappedFunc = lambda: func(datetime.now().isoformat())   
                 cron.timeIntervals(wrappedFunc, interval, unit)
@@ -83,7 +83,7 @@ def main():
  except:
       print("stopping the scheduling function works")
       sch.stopScheduler()
- 
+
  
 if __name__ == "__main__":
     main()

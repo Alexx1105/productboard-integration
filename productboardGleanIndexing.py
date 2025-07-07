@@ -54,7 +54,7 @@ class ProductboardDataClient(StreamingConnectorDataClient[ProductboardData]):
             
             for i in products:
                 yield ProductboardData(i)
-            print(f"PRODUCTS HERE: {i}")
+                print(f"PRODUCTS HERE: {i}")
             nextPage = data.get("links", {}).get("next") 
             if not nextPage:
                 break
@@ -81,7 +81,7 @@ class ProductboardConnector(BaseStreamingDatasourceConnector[ProductboardData]):
                          created_at = self.getTimestamp(i["createdAt"]),
                          updated_at = self.getTimestamp(i["updatedAt"]),
                          permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)  ##TO-DO: change later?                       
-                         
+          
                          )
                      )
              return docs
