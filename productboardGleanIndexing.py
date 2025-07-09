@@ -82,6 +82,7 @@ class ProductboardConnector(BaseStreamingDatasourceConnector[AllProducts]):
                          created_at = self.getTimestamp(i["createdAt"]),
                          updated_at = self.getTimestamp(i["updatedAt"]),
                          permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)  ##TO-DO: change later?                       
+          
                          )
                      )
              return docs

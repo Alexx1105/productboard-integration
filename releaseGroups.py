@@ -25,6 +25,7 @@ class ReleaseGroups(TypedDict):
     description: str
     archived: bool
     html: str
+    releaseGroup: str
     
     
 class ReleaseGroupsDataClient(StreamingConnectorDataClient[ReleaseGroups]):
@@ -46,12 +47,21 @@ class ReleaseGroupsDataClient(StreamingConnectorDataClient[ReleaseGroups]):
                 data = response.json()
                 releaseGroups = data.get("data", [])
                 
+                returned = releaseGroups[0]
+                id = returned["id"]
+    
+                appendedURL = f"{self.apiURL}/releases/{id}"
+                newResponse = requests.get(appendedURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
+                response.raise_for_status()
+                data = response.json()
+                releaseGroups = data.get("data", [])
+                    
                 if not releaseGroups:
-                    break
+                   break
                 
                 for i in releaseGroups:
-                    yield ReleaseGroups(i)
-                    ##print(f"RELEASE GROUPS HERE: {i}")
+                  yield ReleaseGroups(i)
+                  print(f"RELEASE GROUPS HERE: {i}")
                 
                 nextPage = data.get("links", {}).get("next")
                 if not nextPage:
@@ -70,14 +80,14 @@ class ReleaseGroupsConnector(BaseStreamingDatasourceConnector[ReleaseGroups]):
              for i in data:
                 docs.append(DocumentDefinition(
                     id = i["id"],
-                    name = i["name"],
+                    title = i["name"],
                     datasource = self.configuration.name,
-                    view_url = i["links"]["self"],
-                    description = i["description"],
-                    archived = i["archived"],
+                    view_url = i["releaseGroup"]["links"]["self"],
+                    body =  ContentDefinition(mime_type = "text/html", text_content = i["description"]),
                     permissions = DocumentPermissionsDefinition(allow_anonymous_access = True) 
                     )
-                )   
+                ) 
+             print(f"DOCS HERE: {docs}")  
              return docs  
          
              
@@ -85,11 +95,8 @@ if __name__ == "__main__":
     
  try:
     data_client = ReleaseGroupsDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
-    d = data_client.get_source_data()
-    for i in d:
-      print(f"{i}")
-      break
-  
+    data_client.get_source_data()
+    
     connector = ReleaseGroupsConnector(name = "productboard", data_client = data_client)
     connector.index_data(mode = IndexingMode.FULL)
   
