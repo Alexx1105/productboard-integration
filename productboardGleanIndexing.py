@@ -20,7 +20,7 @@ load_dotenv()
 
 
 @dataclass
-class ProductboardData(TypedDict):
+class AllProducts(TypedDict):
     id: str
     name: str
     description: str
@@ -29,12 +29,13 @@ class ProductboardData(TypedDict):
     html: str
 
 
-class ProductboardDataClient(StreamingConnectorDataClient[ProductboardData]):
+class ProductsDataClient(StreamingConnectorDataClient[AllProducts]):
     def __init__(self, apiURL: str, apiKey: str):
         self.apiURL = apiURL
         self.apiKey = apiKey
+        
     
-    def get_source_data(self, since = None) -> Generator[ProductboardData, None, None]:
+    def get_source_data(self, since = None) -> Generator[AllProducts, None, None]:
       
         nextPage = None
         while True:
@@ -53,21 +54,21 @@ class ProductboardDataClient(StreamingConnectorDataClient[ProductboardData]):
                 break
             
             for i in products:
-                yield ProductboardData(i)
+                yield AllProducts(i)
                 print(f"PRODUCTS HERE: {i}")
             nextPage = data.get("links", {}).get("next") 
             if not nextPage:
                 break
             
              
-class ProductboardConnector(BaseStreamingDatasourceConnector[ProductboardData]):
+class ProductboardConnector(BaseStreamingDatasourceConnector[AllProducts]):
       configuration: CustomDatasourceConfig = CustomDatasourceConfig( name = "productboard", display_name = "ProductBoard",
                                                    url_regex = r"https://.*\.productboard\.com/.*", trust_url_regex_for_view_activity = True)
       def __init__(self, name: str, data_client):
           super().__init__(name, data_client)
           self.batch_size = 80
           
-      def transform(self, data: Sequence[ProductboardData]) -> List[DocumentDefinition]:
+      def transform(self, data: Sequence[AllProducts]) -> List[DocumentDefinition]:
              docs = []
              for i in data:
                  docs.append(
@@ -93,7 +94,7 @@ class ProductboardConnector(BaseStreamingDatasourceConnector[ProductboardData]):
 
 def main():
   try:
-    data_client = ProductboardDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+    data_client = ProductsDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
     connector = ProductboardConnector(name = "productboard", data_client = data_client)
     connector.index_data(mode = IndexingMode.FULL)   ##TO-DO: toggle to incremental later?
 
