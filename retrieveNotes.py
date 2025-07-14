@@ -18,30 +18,28 @@ load_dotenv()
 
 
 @dataclass
-class Features(TypedDict):
-     id: str
-     name: str
-     description: str
-     type: str
-     archived: bool
-     status: str
+class Notes(TypedDict):
+    id: str
+    title: str
+    content: str
+    displayUrl: str
+    externalDisplayUrl: str
+    company: str
     
-     
-     
-class CompaniesDataClient(StreamingConnectorDataClient[Features]):
-     def __init__(self, apiURL: str, apiKey: str):
+    
+class NotesDataClient(StreamingConnectorDataClient[Notes]):
+    def __init__(self, apiURL: str, apiKey: str):
         self.apiURL = apiURL
-        self.apiKey = apiKey
+        self.apiKey = apiKey 
         
-
-     def get_source_data(self, since = None) -> Generator[Features, None, None]:
+    def get_source_data(self, since = None) -> Generator[Notes, None, None]:
          
          nextPage = None 
          while True: 
              if nextPage:
                  pageURL = nextPage
              else: 
-                 pageURL = f"{self.apiURL}/features"
+                 pageURL = f"{self.apiURL}/notes"
                  
              response = requests.get(pageURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
              response.raise_for_status()
@@ -51,24 +49,23 @@ class CompaniesDataClient(StreamingConnectorDataClient[Features]):
              returned = features[0]
              id = returned["id"]
          
-             appenededURL = f"{self.apiURL}/features/{id}" 
+             appenededURL = f"{self.apiURL}/notes/{id}" 
              newResponse = requests.get(appenededURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
              newResponse.raise_for_status()
              data = response.json()
              retrievedFeatures = data.get("data", [])
-             
+   
              if not retrievedFeatures:
                  break
              
              for i in retrievedFeatures:
                yield i
             
-
              nextPage = data.get("links", {}).get("next") 
              if not nextPage:
                  break
-
-class FeaturesConnector(BaseStreamingDatasourceConnector[Features]):
+             
+class NotesConnector(BaseStreamingDatasourceConnector[Notes]):
     configuration: CustomDatasourceConfig = CustomDatasourceConfig( name = "productboard", display_name = "ProductBoard",
                                                    url_regex = r"https://.*\.productboard\.com/.*", trust_url_regex_for_view_activity = True)
 
@@ -76,15 +73,15 @@ class FeaturesConnector(BaseStreamingDatasourceConnector[Features]):
         super().__init__(name, data_client)
         self.batch_size = 80
         
-    def transform(self, data: Sequence[Features]) -> List[DocumentDefinition]:
+    def transform(self, data: Sequence[Notes]) -> List[DocumentDefinition]:
         docs = []
         for i in data:
             docs.append(DocumentDefinition(
                 id = i["id"],
-                title = i["name"],
+                title = i["title"],
                 datasource = self.configuration.name,
-                view_url = i["links"]["self"],
-                body = ContentDefinition(mime_type = "text/html", text_content = i["description"]),
+                view_url = i["displayUrl"],
+                body = ContentDefinition(mime_type = "text/html", text_content = i["content"]),
                 permissions = DocumentPermissionsDefinition(allow_anonymous_access = True) 
             ))
         print(f"MAPPED FOR GLEAN: {docs}")
@@ -94,12 +91,12 @@ class FeaturesConnector(BaseStreamingDatasourceConnector[Features]):
 if __name__ == "__main__":
     
     try:
-       data_client = CompaniesDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+       data_client = NotesDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
        data_client.get_source_data()
        
-       connector = FeaturesConnector(name = "productboard", data_client = data_client)
+       connector = NotesConnector(name = "productboard", data_client = data_client)
        connector.index_data(mode = IndexingMode.FULL)
      
-       print("success ✅")
-    except:
-       print("failed ❌")
+       print("successful indexing into glean ✅")
+    except Exception as error:
+       print("failed to index ❌", error)
