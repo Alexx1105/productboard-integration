@@ -53,16 +53,16 @@ class CompaniesDataClient(StreamingConnectorDataClient[Features]):
          
              appenededURL = f"{self.apiURL}/features/{id}" 
              newResponse = requests.get(appenededURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
-             response.raise_for_status()
-             data = newResponse.json()
+             newResponse.raise_for_status()
+             data = response.json()
              retrievedFeatures = data.get("data", [])
              
              if not retrievedFeatures:
                  break
              
-             for i in [retrievedFeatures]:
-                 yield i
-                 break
+             for i in retrievedFeatures:
+               yield i
+            
 
              nextPage = data.get("links", {}).get("next") 
              if not nextPage:
@@ -72,7 +72,8 @@ class FeaturesConnector(BaseStreamingDatasourceConnector[Features]):
     configuration: CustomDatasourceConfig = CustomDatasourceConfig( name = "productboard", display_name = "ProductBoard",
                                                    url_regex = r"https://.*\.productboard\.com/.*", trust_url_regex_for_view_activity = True)
 
-    def __init__(self, name, data_client):
+    def __init__(self, name: str, data_client):
+        super().__init__(name, data_client)
         self.batch_size = 80
         
     def transform(self, data: Sequence[Features]) -> List[DocumentDefinition]:
@@ -86,7 +87,7 @@ class FeaturesConnector(BaseStreamingDatasourceConnector[Features]):
                 body = ContentDefinition(mime_type = "text/html", text_content = i["description"]),
                 permissions = DocumentPermissionsDefinition(allow_anonymous_access = True) 
             ))
-            print(f"MAPPED FOR GLEAN: {docs}")
+        print(f"MAPPED FOR GLEAN: {docs}")
         return docs
 
 
@@ -94,10 +95,8 @@ if __name__ == "__main__":
     
     try:
        data_client = CompaniesDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
-       feature = data_client.get_source_data()
-       for i in feature:
-        print(i)
-     
+       data_client.get_source_data()
+       
        connector = FeaturesConnector(name = "productboard", data_client = data_client)
        connector.index_data(mode = IndexingMode.FULL)
      
