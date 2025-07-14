@@ -1,4 +1,4 @@
-##TEST FOR THIS DATASOURCE ONLY
+
 from itertools import product
 from glean.indexing.models import IndexingMode
 from dataclasses import dataclass
