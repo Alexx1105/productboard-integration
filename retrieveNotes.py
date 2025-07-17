@@ -95,7 +95,7 @@ if __name__ == "__main__":
        data_client.get_source_data()
        
        connector = NotesConnector(name = "productboard", data_client = data_client)
-       connector.index_data(mode = IndexingMode.FULL)
+       connector.index_data(mode = IndexingMode.INCREMENTAL)
      
        print("successful indexing into glean ✅")
     except Exception as error:
