@@ -60,7 +60,7 @@ mapEndpoints: Dict[str, Type[baseTypes]] = {
     "products" : AllProducts,
     "releases" : ReleaseGroups,
     "features" : Features,
-    "notes" : Notes  
+    "notes" : Notes,  
 }
 
 class BaseDataClient(StreamingConnectorDataClient[baseTypes]):
@@ -78,28 +78,65 @@ class BaseDataClient(StreamingConnectorDataClient[baseTypes]):
          response = requests.get(pageURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
          response.raise_for_status()
          data = response.json()
-         products = data.get("data", [])
-         print(f"PRODUCTS HERE {products}")
-
-         if not products:
+         allItems = data.get("data", [])
+         
+         returned = allItems[0]
+         id = returned["id"]
+         
+         appenededURL = f"{self.apiURL}/{i}/{id}" 
+         newResponse = requests.get(appenededURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
+         newResponse.raise_for_status()
+         data = newResponse.json()
+         retrievedFeatures = data.get("data", [])
+         print(f"ALL DATA TYPES: {retrievedFeatures}")
+         
+         if not allItems:
             break
        
-         for i in data:
+         for i in allItems:
               yield i
+        
          nextPage = data.get("links", {}).get("next")
               
          if not nextPage:
             break
     
+    
+class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
+    configuration: CustomDatasourceConfig = CustomDatasourceConfig( name = "productboard", display_name = "ProductBoard",
+                                                   url_regex = r"https://.*\.productboard\.com/.*", trust_url_regex_for_view_activity = True)
 
-if __name__ == "__main__":
-     ##try: 
-       data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
-       for i in data_client.get_source_data():
-         print(i)
+    def __init__(self, name: str, data_client):
+        super().__init__(name, data_client)
+        self.batch_size = 80
+        
+    def transform(self, data: Sequence[baseTypes]):
+         docs = []
+         for i in data:
+            buildURLs = i.get("externalDisplayUrl") or i.get("displayUrl") or i.get("links").get("self") or i.get("html") or ""
+            docs.append(DocumentDefinition(
+                id = i["id"],
+                title = i.get("name") or i.get("title"),
+                datasource = self.configuration.name,
+                view_url = buildURLs,
+                body = ContentDefinition(mime_type = "text/html", text_content = i.get("content") or i.get("description") or ""),
+                owner = UserReferenceDefinition(email = i["owner"].get("email") or ""),
+                permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)   ## change to false in production
+            )) 
+         return docs
      
+        
          
-       ##print("success ✅")
-     ##except:
-       ##print("failure ❗️")
+if __name__ == "__main__":
+     
+     try: 
+       data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+       data_client.get_source_data()
+         
+       connector = BaseConnector(name = "productboard", data_client = data_client)
+       connector.index_data(IndexingMode.INCREMENTAL)
+     
+       print("successful indexing into glean ✅")
+     except Exception as error:
+       print("failed to index ❌", error)
     
