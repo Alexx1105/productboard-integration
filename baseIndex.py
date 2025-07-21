@@ -27,6 +27,8 @@ class AllProducts(TypedDict):
     owner: str
     email: str
     html: str
+    createdAt: str
+    updatedAt: str
 
 @dataclass
 class ReleaseGroups(TypedDict):
@@ -36,6 +38,8 @@ class ReleaseGroups(TypedDict):
     archived: bool
     html: str
     releaseGroup: str
+    createdAt: str
+    updatedAt: str
     
 @dataclass
 class Features(TypedDict):
@@ -45,6 +49,8 @@ class Features(TypedDict):
      type: str
      archived: bool
      status: str
+     createdAt: str
+     updatedAt: str
      
 @dataclass
 class Notes(TypedDict):
@@ -54,6 +60,8 @@ class Notes(TypedDict):
     displayUrl: str
     externalDisplayUrl: str
     company: str
+    createdAt: str
+    updatedAt: str
     
 baseTypes = Union[AllProducts, ReleaseGroups, Features, Notes]
 mapEndpoints: Dict[str, Type[baseTypes]] = {
@@ -121,11 +129,17 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
                 view_url = buildURLs,
                 body = ContentDefinition(mime_type = "text/html", text_content = i.get("content") or i.get("description") or ""),
                 owner = UserReferenceDefinition(email = i["owner"].get("email") or ""),
+                created_at = self._parse_timestamp(i["createdAt"]),
+                updated_at = self._parse_timestamp(i["updatedAt"]),
                 permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)   ## change to false in production
-            )) 
+                )) 
          return docs
-     
-        
+      
+    def _parse_timestamp(self, timestamp: str) -> int: 
+        dateAndTime = datetime.fromisoformat(timestamp.replace("Z", "+00:00")) 
+        print(dateAndTime)
+        return int(dateAndTime.timestamp())
+       
          
 if __name__ == "__main__":
      
@@ -134,7 +148,7 @@ if __name__ == "__main__":
        data_client.get_source_data()
          
        connector = BaseConnector(name = "productboard", data_client = data_client)
-       connector.index_data(IndexingMode.INCREMENTAL)
+       connector.index_data(IndexingMode.FULL)
      
        print("successful indexing into glean ✅")
      except Exception as error:
