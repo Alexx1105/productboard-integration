@@ -1,4 +1,3 @@
-##updated SDK version
 
 from itertools import product
 from glean.indexing.models import IndexingMode
@@ -96,7 +95,7 @@ def main():
   try:
     data_client = ProductsDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
     connector = ProductboardConnector(name = "productboard", data_client = data_client)
-    connector.index_data(mode = IndexingMode.FULL)   ##TO-DO: toggle to incremental later?
+    connector.index_data(mode = IndexingMode.INCREMENTAL)   ##TO-DO: toggle to incremental later?
 
     print("successful indexing of products into glean ✅")
   except: 
