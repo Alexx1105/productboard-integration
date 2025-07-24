@@ -118,26 +118,34 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
         super().__init__(name, data_client)
         self.batch_size = 80
         
-    def transform(self, data: Sequence[baseTypes]):
+    def transform(self, data: Sequence[baseTypes]) -> List[DocumentDefinition]:
          docs = []
          for i in data:
-            buildURLs = i.get("externalDisplayUrl") or i.get("displayUrl") or i.get("links").get("self") or i.get("html") or ""
+            ownerName = i.get("owner", {}).get("email")
+            if not ownerName:
+                continue
+            
+            contentType = i.get("description") or i.get("content")
+            if not contentType:
+                continue
+                
             docs.append(DocumentDefinition(
                 id = i["id"],
                 title = i.get("name") or i.get("title"),
                 datasource = self.configuration.name,
-                view_url = buildURLs,
-                body = ContentDefinition(mime_type = "text/html", text_content = i.get("content") or i.get("description") or ""),
-                owner = UserReferenceDefinition(email = i["owner"].get("email") or ""),
-                created_at = self._parse_timestamp(i["createdAt"]),
-                updated_at = self._parse_timestamp(i["updatedAt"]),
-                permissions = DocumentPermissionsDefinition(allow_anonymous_access = True)   ## change to false in production
+                view_url = i.get("links", {}).get("html") or i.get("releaseGroup", {}).get("links", {}).get("self") or i.get("links", {}).get("self") or i.get("displayUrl"),
+                body = ContentDefinition(mime_type = "text/html", text_content = contentType),
+                owner = UserReferenceDefinition(email = ownerName),
+                created_at = self._parse_timestamp(i.get("createdAt")),
+                updated_at = self._parse_timestamp(i.get("updatedAt")),
+                permissions = DocumentPermissionsDefinition(allow_anonymous_access = True),   ## change to false in production
                 )) 
          return docs
       
     def _parse_timestamp(self, timestamp: str) -> int: 
-        dateAndTime = datetime.fromisoformat(timestamp.replace("Z", "+00:00")) 
-        print(dateAndTime)
+        if not timestamp:
+         return None
+        dateAndTime = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))      
         return int(dateAndTime.timestamp())
        
          
