@@ -35,4 +35,7 @@ https://api.productboard.com/features/{id}`
 - Notes: `https://api.productboard.com/notes/{id}`
 
 ***
+### Main retrieval + indexing logic ###
+All the productboard endpoints are consolidated in `baseIndex.py` to handle the endpoint calls and indexing in one place, previously each endpoint was called and indexed in its own file for the sake of testing.
+***
 ***- For Maximus internal use only***
