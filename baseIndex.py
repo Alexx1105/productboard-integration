@@ -156,7 +156,7 @@ if __name__ == "__main__":
        data_client.get_source_data()
          
        connector = BaseConnector(name = "productboard", data_client = data_client)
-       connector.index_data(IndexingMode.FULL)
+       connector.index_data(IndexingMode.FULL, force_restart = False)   ##flip to true when needed
      
        print("successful indexing into glean ✅")
      except Exception as error:
