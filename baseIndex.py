@@ -149,16 +149,17 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
         return int(dateAndTime.timestamp())
        
          
-if __name__ == "__main__":
+
      
-     try: 
-       data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
-       data_client.get_source_data()
+    def runConnector():  
+      try: 
+        data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+        data_client.get_source_data()
          
-       connector = BaseConnector(name = "productboard", data_client = data_client)
-       connector.index_data(IndexingMode.FULL, force_restart = False)   ##flip to true when needed
+        connector = BaseConnector(name = "productboard", data_client = data_client)
+        connector.index_data(IndexingMode.FULL, force_restart = False)   ##flip to true when needed
      
-       print("successful indexing into glean ✅")
-     except Exception as error:
-       print("failed to index ❌", error)
+        print("successful indexing into glean ✅")
+      except Exception as error:
+        print("failed to index ❌", error)
     
