@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/index.py",
-      "schedule": "0 0 * * 6"
-    }
-  ]
-}

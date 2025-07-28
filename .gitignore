@@ -8,3 +8,11 @@ test3.py
 productboardRequests.py
 indexProductboardData.py
 .vercel
+.Dockerfile
+.retrieveFeatures.py
+.retrieveNotes.py
+.retrieveProducts.py
+.retrieveReleaseGroups.py
+.dockerignore
+
+
