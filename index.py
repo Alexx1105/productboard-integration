@@ -18,7 +18,7 @@ class handler(BaseHTTPRequestHandler):
         "status-code" : 200,
         "body": "Glean indexing completed successfully"
       }
-  
+    
     print("periodical indexing successfully invoked ✅")
  except Exception as error:
     print("invokation failed ❌", error)

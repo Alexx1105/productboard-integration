@@ -162,4 +162,6 @@ def runConnector():
       print("successful indexing into glean ✅")
     except Exception as error:
       print("failed to index ❌", error)
+      
+      
     
