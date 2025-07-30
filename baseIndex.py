@@ -151,7 +151,7 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
          
 
      
-def runConnector():  
+def runConnectorFull():    
     try: 
       data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
       data_client.get_source_data()
@@ -162,6 +162,19 @@ def runConnector():
       print("successful indexing into glean ✅")
     except Exception as error:
       print("failed to index ❌", error)
+                                              ##TO-DO: set up seperate crons for these 
+  
+def runConnectorIncremental():
+    try: 
+      data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+      data_client.get_source_data()
+         
+      connector = BaseConnector(name = "productboard", data_client = data_client)
+      connector.index_data(IndexingMode.INCREMENTAL, force_restart = False)   
+     
+      print("successful indexing into glean ✅")
+    except Exception as error:
+      print("failed to index ❌", error)
       
+  
       
-    

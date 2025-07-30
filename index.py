@@ -1,13 +1,13 @@
 
 from http.server import BaseHTTPRequestHandler
-from baseIndex import runConnector
+from baseIndex import runConnectorFull
 
 
 class handler(BaseHTTPRequestHandler):
   
  try:
     def do_GET(self):
-      runConnector()
+      runConnectorFull()
     
       self.send_response(200)
       self.send_header("Content-type", "text/plain")
