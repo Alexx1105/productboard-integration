@@ -158,7 +158,7 @@ def runConnectorFull():
          
       connector = BaseConnector(name = "productboard", data_client = data_client)
       connector.index_data(IndexingMode.FULL, force_restart = False)   ##flip to true when needed
-     
+    
       print("successful indexing into glean ✅")
     except Exception as error:
       print("failed to index ❌", error)
@@ -171,7 +171,7 @@ def runConnectorIncremental():
          
       connector = BaseConnector(name = "productboard", data_client = data_client)
       connector.index_data(IndexingMode.INCREMENTAL, force_restart = False)   
-     
+      
       print("successful indexing into glean ✅")
     except Exception as error:
       print("failed to index ❌", error)
