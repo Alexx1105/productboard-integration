@@ -28,9 +28,7 @@
    and subsequently calling `ProductboardConnector` before instantiating and indexing it via `index_data`, which takes an argument to fully index all pages.
 ***
 ### Whats currently indexed from productboard ###
-- Release Groups: `
-
-https://api.productboard.com/releases/{id}`
+- Release Groups: `https://api.productboard.com/releases/{id}`
 - Products: `https://api.productboard.com/products/{id}`
 - features: `https://api.productboard.com/features/{id}`
 - Notes: `https://api.productboard.com/notes/{id}`
@@ -39,4 +37,17 @@ https://api.productboard.com/releases/{id}`
 ### Main retrieval + indexing logic ###
 All the productboard endpoints are consolidated in `baseIndex.py` to handle the endpoint calls and indexing in one place, previously each endpoint was called and indexed in its own file for the sake of testing.
 ***
+***Changes for Aug 1st 2025***
+
+- Indexing functions inside of `baseIndex.py` are called from `index.py` whuch is the entry point for docker.
+
+- Connector is dockerized so it can be hosted in an EC2 instacne and other features like cron functionality for full and incremental indexing can be added.
+
+To dockerize connector, build the image with `docker build -t glean-productboard-integration`
+
+Then run with: `docker run -p 8000:8000 glean-productboard-integration`
+
+***⚠️ Note: you must change `index.py` specified port number for production, currently configured to localhost 8000 for testing***
+***
+
 ***- For Maximus internal use only***
