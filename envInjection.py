@@ -1,4 +1,5 @@
 ## Inject .env variables into EC2 instance at runtime 
+## CURRENT WIP to be used by next group who set up EC2
 import boto3
 from botocore.exceptions import ClientError
 import os

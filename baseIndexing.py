@@ -70,7 +70,6 @@ class CustomFields(TypedDict):
     name: str
     
     
-    
 baseTypes = Union[AllProducts, ReleaseGroups, Features, Notes, CustomFields]
 mapEndpoints: Dict[str, Type[baseTypes]] = {
     "products" : AllProducts,
@@ -87,35 +86,43 @@ class BaseDataClient(StreamingConnectorDataClient[baseTypes]):
         
     def get_source_data(self, since = None) -> Generator[baseTypes, None, None]:
         
+     customFieldParams = ["string", "custom-description", "number", "dropdown", "multi-dropdown", "member"] 
+        
      for i in mapEndpoints:
         nextPage = None
         while True:
-         pageURL = nextPage if nextPage else f"{self.apiURL}/{i}" 
-            
-         response = requests.get(pageURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
-         response.raise_for_status()
-         data = response.json()
-         allItems = data.get("data", [])
          
-         returned = allItems[0]
-         id = returned["id"]
+           pageURL = nextPage if nextPage else f"{self.apiURL}/{i}" 
+           headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"}
+           
+           if i == "hierarchy-entities/custom-fields":
+            response = requests.get(pageURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"}, params = {"type" : customFieldParams})
+           else: 
+            response = requests.get(pageURL, headers = headers)
          
-         appenededURL = f"{self.apiURL}/{i}/{id}" 
-         newResponse = requests.get(appenededURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
-         newResponse.raise_for_status()
-         data = newResponse.json()
-         retrievedFeatures = data.get("data", [])
-         print(f"ALL DATA TYPES: {retrievedFeatures}")
+            response.raise_for_status()
+            data = response.json()
+            allItems = data.get("data", [])
          
-         if not allItems:
+            returned = allItems[0]
+            id = returned["id"]
+         
+            appenededURL = f"{self.apiURL}/{i}/{id}" 
+            newResponse = requests.get(appenededURL, headers = {"Authorization": f"Bearer {self.apiKey}", "X-Version":"1"})
+            newResponse.raise_for_status()
+            data = newResponse.json()
+            retrievedFeatures = data.get("data", [])
+            print(f"ALL DATA TYPES: {retrievedFeatures}")
+         
+           if not allItems:
             break
        
-         for i in allItems:
-              yield i
+           for item in allItems:
+              yield (i, item)
         
-         nextPage = data.get("links", {}).get("next")
+           nextPage = data.get("links", {}).get("next")
               
-         if not nextPage:
+           if not nextPage:
             break
     
     
@@ -127,19 +134,21 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
         super().__init__(name, data_client)
         self.batch_size = 80
         
-    def transform(self, data: Sequence[baseTypes]) -> List[DocumentDefinition]:
+    def transform(self, data: Sequence[tuple[str, baseTypes]]) -> List[DocumentDefinition]:
          docs = []
-         for i in data:
+         for mapEndpoint, i in data:
             ownerName = i.get("owner", {}).get("email")
             if not ownerName:
-                continue
+                continue    
             
             contentType = i.get("description") or i.get("content")
             if not contentType:
                 continue
+
+            documentID = f"{self.configuration.name}:{mapEndpoint}:{i['id']}"  ##added to prevent duplicate document ID clashes
                 
             docs.append(DocumentDefinition(
-                id = i["id"],
+                id = documentID,
                 title = i.get("name") or i.get("title"),
                 datasource = self.configuration.name,
                 view_url = i.get("links", {}).get("html") or i.get("releaseGroup", {}).get("links", {}).get("self") or i.get("links", {}).get("self") or i.get("displayUrl"),
@@ -147,7 +156,7 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
                 owner = UserReferenceDefinition(email = ownerName),
                 created_at = self._parse_timestamp(i.get("createdAt")),
                 updated_at = self._parse_timestamp(i.get("updatedAt")),
-                permissions = DocumentPermissionsDefinition(allow_anonymous_access = True),   ## change to false in production
+                permissions = DocumentPermissionsDefinition(allow_anonymous_access = True),   ##change to false in production
                 )) 
          return docs
       
@@ -159,8 +168,8 @@ class BaseConnector(BaseStreamingDatasourceConnector[baseTypes]):
        
          
 
-if __name__ == "__main__":      
-##def runConnectorFull():    
+     
+def runConnectorFull():    
     try: 
       data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
       data_client.get_source_data()

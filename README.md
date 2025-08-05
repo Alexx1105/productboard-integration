@@ -32,20 +32,21 @@
 - Products: `https://api.productboard.com/products/{id}`
 - features: `https://api.productboard.com/features/{id}`
 - Notes: `https://api.productboard.com/notes/{id}`
+-Custom fields: `https://api.productboard.com/hierarchy-entities/custom-fields{id}`
 
 ***
 ### Main retrieval + indexing logic ###
-All the productboard endpoints are consolidated in `baseIndex.py` to handle the endpoint calls and indexing in one place, previously each endpoint was called and indexed in its own file for the sake of testing.
+All the productboard endpoints are consolidated in `baseIndexing.py` to handle the endpoint calls and indexing in one place, previously each endpoint was called and indexed in its own file for the sake of testing.
 ***
 ***Changes for Aug 1st 2025***
 
-- Indexing functions inside of `baseIndex.py` are called from `index.py` whuch is the entry point for docker.
+- Indexing functions inside of `baseIndexing.py` are called from `index.py` whuch is the entry point for docker.
 
 - Connector is dockerized so it can be hosted in an EC2 instacne and other features like cron functionality for full and incremental indexing can be added.
 
-To dockerize connector, build the image with `docker build -t glean-productboard-integration`
+To dockerize connector, first have docker desktop running, then build the image with `docker build -t glean-productboard-integration:latest .`
 
-Then run with: `docker run -p 8000:8000 glean-productboard-integration`
+Then run with: `docker run --env-file .env -p 8000:8000 --name glean_prodboard_latest glean-productboard-integration:latest`
 
 ***⚠️ Note: you must change `index.py` specified port number for production, currently configured to localhost 8000 for testing***
 ***
