@@ -40,7 +40,7 @@ All the productboard endpoints are consolidated in `baseIndexing.py` to handle t
 ***
 ***Changes for Aug 1st 2025***
 
-- Indexing functions inside of `baseIndexing.py` are called from `index.py` whuch is the entry point for docker.
+- Indexing functions inside of `baseIndexing.py` are called from `index.py` which is the entry point for docker.
 
 - Connector is dockerized so it can be hosted in an EC2 instacne and other features like cron functionality for full and incremental indexing can be added.
 
@@ -50,5 +50,15 @@ Then run with: `docker run --env-file .env -p 8000:8000 --name glean_prodboard_l
 
 ***⚠️ Note: you must change `index.py` specified port number for production, currently configured to localhost 8000 for testing***
 ***
+
+<img width="2536" height="1736" alt="CleanShot 2025-08-05 at 14 23 02@2x" src="https://github.com/user-attachments/assets/56e21860-4547-4a79-8bf3-42dfabbbdde2" />
+ 
+ ### High level project flow ###
+ 
+The screenshot above shows what the respective .py files and directories do and what are the main entry points for the indexing and retrieval logic, this does not incorporate the cron schedulers or EC2 as those will still need to be created. 
+
+❗️ It's worth noting the existence of the`envInjection.py` file, this file is currently as WIP as AWS access is still needed.
+When access is granted to an EC2 instance where the docker container and the cron schedulers will be hosted, you can use `envInjection.py` to inject, create, or update .env values into AWS secrets manager at runtime for authentication.
+___
 
 ***- For Maximus internal use only***
