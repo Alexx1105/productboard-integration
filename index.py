@@ -1,6 +1,6 @@
-
+##FOR DOCKER SETUP
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from baseIndex import runConnectorFull
+from baseIndexing import runConnectorFull
 
 
 class Handler(BaseHTTPRequestHandler):
