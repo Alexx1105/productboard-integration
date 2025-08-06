@@ -60,5 +60,30 @@ The screenshot above shows what the respective .py files and directories do and 
 ❗️ It's worth noting the existence of the`envInjection.py` file, this file is currently as WIP as AWS access is still needed.
 When access is granted to an EC2 instance where the docker container and the cron schedulers will be hosted, you can use `envInjection.py` to inject, create, or update .env values into AWS secrets manager at runtime for authentication.
 ___
+ ### Generating env credentials ###
+ (1) In your project's directory, run `touch .env` to later add glean & productboard credentials
+
+ (2) In the new .env file, create three variables: `API_TOKEN` , `GLEAN_INDEXING_API_TOKEN` and `GLEAN_INSTANCE` | API_TOKEN is where the productboard token will go, GLEAN_INDEXING_API_TOKEN is for your glean indexing token, and GLEAN_INSTANCE will be the maximus instance from the glean URL
+
+ (3) Generate the credentials from the glean and productboard admin dashboard and add them to the associated env variables like so API_TOKEN=<ADD_TOKEN_HERE> | GLEAN_INDEXING_API_TOKEN=<ADD_GLEAN_TOKEN_HERE> | GLEAN_INSTANCE=maximus
+
+ (4) In the CLI, run `export GLEAN_INSTANCE=maximus` in the project's directory 
+
+  ### For glean ###
+<img width="1988" height="485" alt="CleanShot 2025-08-06 at 12 08 53" src="https://github.com/user-attachments/assets/87fcadc3-4fcd-4a73-9c46-415f9d77c403" />
+
+***Hit the tool icon at the bottom left, hit "Platform", then access "API Tokens" to generate your glean indexing token under the "Indexing API Tokens" tab***
+
+ ### For Productboard ###
+<img width="772" height="197" alt="CleanShot 2025-08-06 at 12 21 20" src="https://github.com/user-attachments/assets/7cb76912-27f4-4bfc-905c-301d07e4448e" />
+
+Your env file should look like this:
+```
+API_TOKEN=<PRODUCTBOARD_TOKEN_HERE>
+GLEAN_INDEXING_API_TOKEN=<GLEAN_INDEXING_TOKEN_HERE>
+GLEAN_INSTANCE=maximus
+```
+
+___
 
 ***- For Maximus internal use only***
