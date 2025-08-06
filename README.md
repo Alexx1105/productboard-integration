@@ -32,7 +32,7 @@
 - Products: `https://api.productboard.com/products/{id}`
 - features: `https://api.productboard.com/features/{id}`
 - Notes: `https://api.productboard.com/notes/{id}`
--Custom fields: `https://api.productboard.com/hierarchy-entities/custom-fields{id}`
+- Custom fields: `https://api.productboard.com/hierarchy-entities/custom-fields{id}`
 
 ***
 ### Main retrieval + indexing logic ###
