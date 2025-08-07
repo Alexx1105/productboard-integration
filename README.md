@@ -83,7 +83,46 @@ API_TOKEN=<PRODUCTBOARD_TOKEN_HERE>
 GLEAN_INDEXING_API_TOKEN=<GLEAN_INDEXING_TOKEN_HERE>
 GLEAN_INSTANCE=maximus
 ```
+___
+### For manual testing ###
+To test the retrieval and indexing logic in `baseIndexing.py` without or before docker containerization, run the code as a static script by doing this below:
+
+
+*temporarily comment out `def runConnectorFull():`*
+```
+##def runConnectorFull():    
+    try: 
+      data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+      data_client.get_source_data()
+         
+      connector = BaseConnector(name = "productboard", data_client = data_client)
+      connector.index_data(IndexingMode.FULL, force_restart = False)   ##flip to true when needed
+    
+      print("successful indexing into glean ✅")
+    except Exception as error:
+      print("failed to index ❌", error)
+```
+
+
+*and replace with `if __name__ == "__main__":`*
+```
+if __name__ == "__main__": 
+##def runConnectorFull():    
+    try: 
+      data_client = BaseDataClient(apiURL = "https://api.productboard.com", apiKey = os.getenv("API_TOKEN"))
+      data_client.get_source_data()
+         
+      connector = BaseConnector(name = "productboard", data_client = data_client)
+      connector.index_data(IndexingMode.FULL, force_restart = False)   ##flip to true when needed
+    
+      print("successful indexing into glean ✅")
+    except Exception as error:
+      print("failed to index ❌", error)
+```
+
+
+*In the terminal, run `python3 baseIndexing.py` to get the output*
 
 ___
 
-***- For Maximus internal use only***
+***Copyright © 2025 Maximus. All rights reserved***
